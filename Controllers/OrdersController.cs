@@ -1,4 +1,6 @@
 ﻿using DutchTreat.Data;
+using DutchTreat.Data.Entities;
+using DutchTreat.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -30,7 +32,7 @@ namespace DutchTreat.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"failed to get orders");
+                _logger.LogError($"failed to get orders {ex}");
                 return BadRequest("Failed to get orders");
             }
         }
@@ -56,6 +58,51 @@ namespace DutchTreat.Controllers
                 _logger.LogError($"failed to get orders");
                 return BadRequest("Failed to get orders");
             }
+        }
+
+        [HttpPost]
+        public IActionResult Post([FromBody]OrderViewModel model)
+        {
+            //add it to db
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var newOrder = new Order()
+                    {
+                        OrderDate = model.OrderDate,
+                        OrderNumber = model.OrderNumber,
+                        Id = model.OrderId
+                    };
+
+                    if (newOrder.OrderDate == DateTime.MinValue)
+                    {
+                        newOrder.OrderDate = DateTime.Now;
+                    }
+
+                    _repository.AddEntity(newOrder);
+                    if (_repository.SaveChanges())
+                    {
+                        var vm = new OrderViewModel()
+                        {
+                            OrderId = newOrder.Id,
+                            OrderDate = newOrder.OrderDate,
+                            OrderNumber = newOrder.OrderNumber
+                        };
+                        return Created($"/api/orders/{vm.OrderId}", vm);
+                    }
+                }
+                else
+                {
+                    return BadRequest(ModelState);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to save a new order: {ex}");
+            }
+
+            return BadRequest("Failed to save new order");
         }
     }
 }

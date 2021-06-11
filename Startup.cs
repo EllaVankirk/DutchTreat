@@ -8,10 +8,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using AutoMapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace DutchTreat
 {
@@ -35,6 +37,8 @@ namespace DutchTreat
             services.AddTransient<IMailService, NullMailService>();
 
             services.AddTransient<DutchSeeder>();
+
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             services.AddControllersWithViews()
                 .AddRazorRuntimeCompilation()
